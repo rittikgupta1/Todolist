@@ -2,6 +2,11 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const { static } = require("express");
 const app = express();
+const mongoose =require("mongoose")
+
+
+
+
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 var items = ["Eat food", "Cook Food", "Buy Food"];
