@@ -2,55 +2,148 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const { static } = require("express");
 const app = express();
-const mongoose =require("mongoose")
-mongoose.connect("mongodb://localhost:27017/todolistDB");
-const itemSchema = {
+const mongoose = require("mongoose");
+mongoose.connect("mongodb://localhost:27017/todolistDB", { useNewUrlParser: true, useUnifiedTopology: true });
+
+const itemSchema = new mongoose.Schema({
     name: String
-}
-
-
+});
+const Item = mongoose.model("Item", itemSchema)
+const ListSchema = new mongoose.Schema({
+    name:String,
+    items:[itemSchema]
+});
+const List = mongoose.model("List",ListSchema);
+const Item1 = new Item({
+    name: "Welocme to our ToDoList"
+});
+const Item2 = new Item({
+    name: "Hit this + button to add an item"
+});
+const Item3 = new Item({
+    name: "<-- Hit this to delete an item"
+});
+const defaultItems = [Item1, Item2, Item3];
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
-var items = ["Eat food", "Cook Food", "Buy Food"];
-var WorkArray = [];
 app.use(express.static("public"));
 app.get("/", (req, res) => {
 
-    var event = new Date();
-    var options = {
-        weekday: 'long',
-        day: "numeric",
-        month: "long",
-    };
-    var toSend = event.toLocaleDateString('en-US', options);
-    res.render("list", { listTitle: toSend, newListItem: items });
+    Item.find({}, function (err, findings) {
+        if (findings.length == 0) {
+            Item.insertMany(defaultItems, function (err) {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                    console.log("Successfully Saved!")
+                }
+                res.redirect("/");
+            })
+
+        }
+        else {
+            res.render("list", { listTitle: "Today", newListItem: findings });
+        }
+
+    })
 
 })
 app.post("/", (req, res) => {
     var item = req.body.Item;
-    if(req.body.list=="work"){
-        WorkArray.push(item);       
-        res.redirect("/work")
-    }else{
-    items.push(item);
+    var ItemAdded = new Item({
+        name: item
+    })
+    ItemAdded.save();
     res.redirect("/");
-    }
-
-
 })
-app.get("/work", (req, res) => {
-    res.render("list", { listTitle: "work", newListItem: WorkArray })
-})
+app.post("/delete", (req, res) => {
+    const toDelete = req.body.checkbox;
+    Item.deleteOne({ _id: toDelete }, (err) => {
+        console.log("Successed in deleting the entry")
+    })
+    res.redirect("/");
+
+});
+
 app.post("/", (req, res) => {
     var items = req.body.Item;
     WorkArray.push(items);
     res.redirect("/");
 })
-app.get("/about",(req,res)=>{
+app.get("/about", (req, res) => {
     res.render("about");
 });
 
+app.get("/:customListName",(req,res)=>{
+const CustomListName= req.params.customListName;
+List.findOne({name:CustomListName},(err,results)=>{
+    if(!err){
+        if(!results){
+        ///create
+        const list = new List({
+            name:CustomListName,
+            items:defaultItems
+        });
+        list.save();
+        res.redirect("/" + CustomListName)
+        
+        }
+        else{
+            //show
+            
+            res.render("list", { listTitle: results.name, newListItem: results.items });
+                }
+    }
+    else{
+        console.log(results)
+    }
+})
+
+});
 app.listen(5000, () => {
     console.log("Server started on port 5000");
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// var items = ["Eat food", "Cook Food", "Buy Food"];
+
+// var event = new Date();
+//     var options = {
+//         weekday: 'long',
+//         day: "numeric",
+//         month: "long",
+//     };
+//     var toSend = event.toLocaleDateString('en-US', options);
+
+
+
+
+// if (req.body.list == "work") {
+//     WorkArray.push(item);
+//     res.redirect("/work")
+// } else {
+//     items.push(item);
+//     res.redirect("/");
+// }
