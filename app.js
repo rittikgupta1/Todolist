@@ -1,4 +1,5 @@
 const express = require("express");
+const _ = require("lodash")
 const bodyParser = require("body-parser");
 const { static } = require("express");
 const app = express();
@@ -98,7 +99,7 @@ app.get("/about", (req, res) => {
 });
 
 app.get("/:customListName", (req, res) => {
-    const CustomListName = req.params.customListName;
+    const CustomListName =_.capitalize(req.params.customListName);
     List.findOne({ name: CustomListName }, (err, results) => {
         if (!err) {
             if (!results) {
