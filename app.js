@@ -10,10 +10,10 @@ const itemSchema = new mongoose.Schema({
 });
 const Item = mongoose.model("Item", itemSchema)
 const ListSchema = new mongoose.Schema({
-    name:String,
-    items:[itemSchema]
+    name: String,
+    items: [itemSchema]
 });
-const List = mongoose.model("List",ListSchema);
+const List = mongoose.model("List", ListSchema);
 const Item1 = new Item({
     name: "Welocme to our ToDoList"
 });
@@ -51,19 +51,40 @@ app.get("/", (req, res) => {
 
 })
 app.post("/", (req, res) => {
-    var item = req.body.Item;
+    var itemName = req.body.Item;
+    var listName = req.body.list;
     var ItemAdded = new Item({
-        name: item
+        name: itemName
     })
-    ItemAdded.save();
-    res.redirect("/");
+    if (listName == "Today") {
+        ItemAdded.save();
+        res.redirect("/");
+    }
+    else {
+        List.findOne({ name: listName }, (error, resul) => {
+            const toAdd = resul.items
+            toAdd.push(ItemAdded);
+            resul.save();
+            res.redirect("/" + listName);
+        })
+    }
 })
 app.post("/delete", (req, res) => {
     const toDelete = req.body.checkbox;
-    Item.deleteOne({ _id: toDelete }, (err) => {
-        console.log("Successed in deleting the entry")
-    })
-    res.redirect("/");
+    const ListName = req.body.ListName;
+    if (ListName == "Today") {
+        Item.deleteOne({ _id: toDelete }, (err) => {
+            console.log("Successed in deleting the entry")
+        })
+        res.redirect("/");
+    }
+    else{
+        List.findOneAndUpdate({name:ListName},{$pull:{items:{_id:toDelete}}},(err,foundList)=>{
+            if(!err){
+                res.redirect("/"+ListName)
+            }
+        })
+    }
 
 });
 
@@ -76,30 +97,30 @@ app.get("/about", (req, res) => {
     res.render("about");
 });
 
-app.get("/:customListName",(req,res)=>{
-const CustomListName= req.params.customListName;
-List.findOne({name:CustomListName},(err,results)=>{
-    if(!err){
-        if(!results){
-        ///create
-        const list = new List({
-            name:CustomListName,
-            items:defaultItems
-        });
-        list.save();
-        res.redirect("/" + CustomListName)
-        
+app.get("/:customListName", (req, res) => {
+    const CustomListName = req.params.customListName;
+    List.findOne({ name: CustomListName }, (err, results) => {
+        if (!err) {
+            if (!results) {
+                ///create
+                const list = new List({
+                    name: CustomListName,
+                    items: defaultItems
+                });
+                list.save();
+                res.redirect("/" + CustomListName)
+
+            }
+            else {
+                //show
+
+                res.render("list", { listTitle: results.name, newListItem: results.items });
+            }
         }
-        else{
-            //show
-            
-            res.render("list", { listTitle: results.name, newListItem: results.items });
-                }
-    }
-    else{
-        console.log(results)
-    }
-})
+        else {
+            console.log(results)
+        }
+    })
 
 });
 app.listen(5000, () => {
