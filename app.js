@@ -29,6 +29,7 @@ const defaultItems = [Item1, Item2, Item3];
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+///Get request for home route
 app.get("/", (req, res) => {
 
     Item.find({}, function (err, findings) {
@@ -51,6 +52,7 @@ app.get("/", (req, res) => {
     })
 
 })
+//Adding new items to home and post route
 app.post("/", (req, res) => {
     var itemName = req.body.Item;
     var listName = req.body.list;
@@ -70,6 +72,7 @@ app.post("/", (req, res) => {
         })
     }
 })
+///Deteting from home and custom route
 app.post("/delete", (req, res) => {
     const toDelete = req.body.checkbox;
     const ListName = req.body.ListName;
@@ -88,16 +91,11 @@ app.post("/delete", (req, res) => {
     }
 
 });
-
-app.post("/", (req, res) => {
-    var items = req.body.Item;
-    WorkArray.push(items);
-    res.redirect("/");
-})
+////Get about Page
 app.get("/about", (req, res) => {
     res.render("about");
 });
-
+///Get request for custom route 
 app.get("/:customListName", (req, res) => {
     const CustomListName =_.capitalize(req.params.customListName);
     List.findOne({ name: CustomListName }, (err, results) => {
@@ -122,8 +120,8 @@ app.get("/:customListName", (req, res) => {
             console.log(results)
         }
     })
-
 });
+///Listening on port 5000
 app.listen(5000, () => {
     console.log("Server started on port 5000");
 })
@@ -146,26 +144,3 @@ app.listen(5000, () => {
 
 
 
-
-
-
-// var items = ["Eat food", "Cook Food", "Buy Food"];
-
-// var event = new Date();
-//     var options = {
-//         weekday: 'long',
-//         day: "numeric",
-//         month: "long",
-//     };
-//     var toSend = event.toLocaleDateString('en-US', options);
-
-
-
-
-// if (req.body.list == "work") {
-//     WorkArray.push(item);
-//     res.redirect("/work")
-// } else {
-//     items.push(item);
-//     res.redirect("/");
-// }
