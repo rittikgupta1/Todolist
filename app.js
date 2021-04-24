@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const { static } = require("express");
 const app = express();
 const mongoose = require("mongoose");
-mongoose.connect("mongodb+srv://Admin_rittik:<pass>@cluster0.vjxlj.mongodb.net/todolistDB", { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect("mongodb+srv://Admin_rittik:Guptaji@cluster0.vjxlj.mongodb.net/todolistDB", { useNewUrlParser: true, useUnifiedTopology: true });
 
 const itemSchema = new mongoose.Schema({
     name: String
@@ -121,9 +121,15 @@ app.get("/:customListName", (req, res) => {
         }
     })
 });
+
+let port = process.env.PORT;
+if(port ==null || port == ""){
+    port = 5000;
+}
+
 ///Listening on port 5000
-app.listen(process.env.PORT || 5000, () => {
-    console.log("Server started on port 5000");
+app.listen( port, () => {
+    console.log("Server started ");
 })
 
 
